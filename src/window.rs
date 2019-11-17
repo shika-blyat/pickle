@@ -106,7 +106,7 @@ impl Window {
         self.surface.pipeline_builder().pipeline(
             &self.back_buffer,
             self.background_color.to_f32(),
-            |_, mut shd_gate| {
+            |_, mut shd_gate|{
                 shd_gate.shade(&program, |_, mut rdr_gate| {
                     rdr_gate.render(RenderState::default(), |tess_gate| {
                         Window::render_all(tess, tess_gate);
