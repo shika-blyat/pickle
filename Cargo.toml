@@ -1,0 +1,13 @@
+[package]
+name = "pickle"
+version = "0.1.0"
+authors = ["shika-blyat <abdelzighem1@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+luminance = "0.37"
+luminance-derive = "0.5"
+luminance-glutin = "0.6.1"
+luminance-windowing = "0.8.0"
