@@ -29,9 +29,15 @@ fn main() {
             points: ((100, 300), (200, 300), (200, 200)),
             color: ColorRGB::new(255, 85, 145),
         };
+        let circle = Shapes::Circle {
+            points: (300, 50),
+            radius: 50,
+            color: ColorRGB::new(255, 85, 145),
+        };
         window.grid.add_shape(line);
         window.grid.add_shape(rectangle);
         window.grid.add_shape(triangle);
+        window.grid.add_shape(circle);
         window.display();
     }
 }

@@ -1,3 +1,4 @@
+use crate::math;
 use luminance_derive::{Semantics, Vertex};
 const SLOPE_TO_LUMCOLOR: f32 = 1. / 256.0;
 
@@ -8,7 +9,7 @@ pub enum VertexSemantics {
     #[sem(name = "color", repr = "[u8; 3]", wrapper = "VertexRGB")]
     Color,
 }
-#[derive(Vertex)]
+#[derive(Vertex, Copy, Clone, Debug)]
 #[vertex(sem = "VertexSemantics")]
 #[allow(unused)]
 pub struct Vertex {
@@ -22,30 +23,19 @@ impl Vertex {
         // translate from window size to (-1;1) coordinate
         (-1.0 + 2.0 / init_size as f32 * point as f32)
     }
-    pub fn from_point(point: (u32, u32), color: ColorRGB, win_size: [u32; 2], init_size: [u32;2]) -> Vertex {
-
+    pub fn from_point(
+        point: (u32, u32),
+        color: ColorRGB,
+        win_size: [u32; 2],
+        init_size: [u32; 2],
+    ) -> Vertex {
         let width = Vertex::translate(win_size[1], point.1, init_size[1]);
-        let height = -(Vertex::translate(win_size[0], point.0 , init_size[0]));
+        let height = -(Vertex::translate(win_size[0], point.0, init_size[0]));
         Vertex {
             position: VertexPosition::new([width, height]),
             color: VertexRGB::new(color.0),
         }
     }
-    /*pub fn from_point(
-        point: (u32, u32),
-        color: ColorRGB,
-        win_size: [u32; 2],
-        _init_size: [u32; 2],
-    ) -> Vertex {
-        let fpixelw: f32 = 1.0 / win_size[1] as f32;
-        let fpixelh: f32 = 1.0 / win_size[0] as f32;
-        let width = -1.0 + (fpixelw * point.1 as f32);
-        let height = 1.0 - (fpixelh * point.0 as f32);
-        Vertex {
-            position: VertexPosition::new([width, height]),
-            color: VertexRGB::new(color.0),
-        }
-    }*/
 }
 
 pub enum Shapes {
@@ -61,6 +51,11 @@ pub enum Shapes {
         points: ((u32, u32), (u32, u32)),
         color: ColorRGB,
     },
+    Circle {
+        points: (u32, u32),
+        radius: u32,
+        color: ColorRGB,
+    },
 }
 impl Shape for Shapes {
     fn get_color(&self) -> ColorRGB {
@@ -68,6 +63,11 @@ impl Shape for Shapes {
             Shapes::Line { points: _, color } => *color,
             Shapes::Rectangle { points: _, color } => *color,
             Shapes::Triangle { points: _, color } => *color,
+            Shapes::Circle {
+                points: _,
+                radius: _,
+                color,
+            } => *color,
         }
     }
     fn get_points(&self) -> Vec<(u32, u32)> {
@@ -77,6 +77,11 @@ impl Shape for Shapes {
                 vec![(*points).0, (*points).1, (*points).2, (*points).3]
             }
             Shapes::Triangle { points, color: _ } => vec![(*points).0, (*points).1, (*points).2],
+            Shapes::Circle {
+                points,
+                radius: _,
+                color: _,
+            } => vec![*points],
         }
     }
     fn get_vertex(&self, size: [u32; 2], init_size: [u32; 2]) -> Vec<Vertex> {
@@ -150,6 +155,27 @@ impl Shape for Shapes {
                     [init_size[0], init_size[1]],
                 ),
             ],
+            Shapes::Circle {
+                points,
+                radius,
+                color: _,
+            } => {
+                let mut points_to_draw = vec![];
+                for i in points.0-radius..points.0+radius {
+                    for j in points.1-radius..points.1+radius {
+                        let p = (i, j);
+                        if math::point_dist((points.0 as i32, points.1 as i32), (i as i32, j as i32)) <= (*radius as i32) as f32 {
+                            points_to_draw.push(Vertex::from_point(
+                                p,
+                                self.get_color(),
+                                size,
+                                [init_size[0], init_size[1]],
+                            ));
+                        }
+                    }
+                }
+                points_to_draw
+            }
         }
     }
 }

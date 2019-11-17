@@ -100,13 +100,29 @@ impl Window {
                         .build()
                         .unwrap(),
                 ),
+                Shapes::Circle {
+                    points: _,
+                    color: _,
+                    radius: _,
+                } => {
+                    let lines = shape.get_vertex(size, [self.init_width, self.init_height]);
+                    for i in 0..lines.len() {
+                        tess.push(
+                            TessBuilder::new(&mut self.surface)
+                                .add_vertices(vec![lines[i]])
+                                .set_mode(Mode::Point)
+                                .build()
+                                .unwrap(),
+                        )
+                    }
+                }
             }
         }
         let program = &self.program;
         self.surface.pipeline_builder().pipeline(
             &self.back_buffer,
             self.background_color.to_f32(),
-            |_, mut shd_gate|{
+            |_, mut shd_gate| {
                 shd_gate.shade(&program, |_, mut rdr_gate| {
                     rdr_gate.render(RenderState::default(), |tess_gate| {
                         Window::render_all(tess, tess_gate);
