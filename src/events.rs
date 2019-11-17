@@ -6,6 +6,7 @@ pub enum WindowEvent {
     MouseButton,
     MouseMovement,
     Close,
+    Resize,
 }
 
 pub struct Events;
@@ -23,6 +24,7 @@ impl Events {
                     GlutinEvent::CloseRequested | GlutinEvent::Destroyed => {
                         event_list.push(WindowEvent::Close)
                     }
+                    GlutinEvent::Resized(_) => event_list.push(WindowEvent::Resize),
                     _ => (),
                 }
             }

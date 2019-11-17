@@ -1,14 +1,13 @@
 use crate::events::{Events, WindowEvent};
 use crate::grid::Grid;
 use crate::shapes::ColorRGB;
-use crate::shapes::Shape;
-use crate::shapes::{Vertex, VertexSemantics};
-use luminance::pipeline::TessGate;
+use crate::shapes::{Shape, Shapes, VertexSemantics};
 use luminance::context::GraphicsContext;
 use luminance::framebuffer::Framebuffer;
+use luminance::pipeline::TessGate;
 use luminance::render_state::RenderState;
 use luminance::shader::program::Program;
-use luminance::tess::{Mode, TessBuilder, Tess, TessSliceIndex as _};
+use luminance::tess::{Mode, Tess, TessBuilder, TessSliceIndex as _};
 use luminance::texture::Dim2;
 use luminance::texture::Flat;
 use luminance_glutin::{GlutinSurface, Surface, WindowDim, WindowOpt};
@@ -17,19 +16,19 @@ const VS_STR: &str = include_str!("glsl/vs.glsl");
 const FS_STR: &str = include_str!("glsl/fs.glsl");
 
 #[allow(unused)]
-pub struct Window<T: Shape> {
-    width: u32,
-    height: u32,
+pub struct Window {
+    init_width: u32,
+    init_height: u32,
     events: Events,
     surface: GlutinSurface,
     back_buffer: Framebuffer<Flat, Dim2, (), ()>,
     background_color: ColorRGB,
     program: Program<VertexSemantics, (), ()>,
-    pub grid: Grid<T>,
+    pub grid: Grid,
 }
 
-impl<T: Shape> Window<T> {
-    pub fn new<'a>(size: (u32, u32), name: &'a str) -> Window<T> {
+impl Window {
+    pub fn new<'a>(size: (u32, u32), name: &'a str) -> Window {
         let surface = GlutinSurface::new(
             WindowDim::Windowed(size.0, size.1),
             name,
@@ -48,8 +47,8 @@ impl<T: Shape> Window<T> {
                 .unwrap()
                 .ignore_warnings();
         Window {
-            width: size.0,
-            height: size.1,
+            init_width: size.0,
+            init_height: size.1,
             events,
             surface,
             grid,
@@ -65,29 +64,52 @@ impl<T: Shape> Window<T> {
         self.background_color = color;
     }
     pub fn display(&mut self) {
-        let program = &self.program;
-        let size = self.get_size();
+        self.back_buffer = self.surface.back_buffer().unwrap();
         let mut tess: Vec<Tess> = vec![];
-        for i in self.grid.get_queue() {
-            tess.push(
-                TessBuilder::new(&mut self.surface)
-                    .add_vertices([
-                        Vertex::from_point(i.get_points()[0], i.get_color(), size),
-                        Vertex::from_point(i.get_points()[1], i.get_color(), size),
-                        Vertex::from_point(i.get_points()[2],  i.get_color(), size),
-                    ])
-                    .set_mode(Mode::Triangle)
-                    .build()
-                    .unwrap(),
-            )
+        let size = self.get_size();
+        for shape in self.grid.get_queue() {
+            match shape {
+                Shapes::Triangle {
+                    points: _,
+                    color: _,
+                } => tess.push(
+                    TessBuilder::new(&mut self.surface)
+                        .add_vertices(shape.get_vertex(size, [self.init_width, self.init_height]))
+                        .set_mode(Mode::Triangle)
+                        .build()
+                        .unwrap(),
+                ),
+                Shapes::Rectangle {
+                    points: _,
+                    color: _,
+                } => tess.push(
+                    TessBuilder::new(&mut self.surface)
+                        .set_vertex_nb(4)
+                        .add_vertices(shape.get_vertex(size, [self.init_width, self.init_height]))
+                        .set_mode(Mode::TriangleFan)
+                        .build()
+                        .unwrap(),
+                ),
+                Shapes::Line {
+                    points: _,
+                    color: _,
+                } => tess.push(
+                    TessBuilder::new(&mut self.surface)
+                        .add_vertices(shape.get_vertex(size, [self.init_width, self.init_height]))
+                        .set_mode(Mode::Line)
+                        .build()
+                        .unwrap(),
+                ),
+            }
         }
+        let program = &self.program;
         self.surface.pipeline_builder().pipeline(
             &self.back_buffer,
             self.background_color.to_f32(),
             |_, mut shd_gate| {
                 shd_gate.shade(&program, |_, mut rdr_gate| {
                     rdr_gate.render(RenderState::default(), |tess_gate| {
-                        Window::<T>::render_all(tess, tess_gate);
+                        Window::render_all(tess, tess_gate);
                     });
                 });
             },
@@ -95,8 +117,8 @@ impl<T: Shape> Window<T> {
         self.grid.clear_queue();
         self.surface.swap_buffers();
     }
-    fn render_all(shapes: Vec<Tess>, mut tess_gate: TessGate<'_, luminance_glutin::GlutinSurface>){
-        for i in shapes{
+    fn render_all(shapes: Vec<Tess>, mut tess_gate: TessGate<'_, luminance_glutin::GlutinSurface>) {
+        for i in shapes {
             tess_gate.render(i.slice(..));
         }
     }
