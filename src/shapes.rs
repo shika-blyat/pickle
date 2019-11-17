@@ -11,6 +11,7 @@ pub enum VertexSemantics {
 }
 #[derive(Vertex)]
 #[vertex(sem = "VertexSemantics")]
+#[allow(unused)]
 pub struct Vertex {
     position: VertexPosition,
     #[vertex(normalized = "true")]
@@ -21,10 +22,10 @@ impl Vertex {
     fn translate(win_size: u32, point: u32) -> f32 {
         -1.0 + 2.0 / win_size as f32 * point as f32
     }
-    pub fn from_point(point: (u32, u32), color: ColorRGB, win_size: (u32, u32)) -> Vertex {
+    pub fn from_point(point: (u32, u32), color: ColorRGB, win_size: [u32;2]) -> Vertex {
         // translate from window size to (-1;1) coordinate
-        let width = Vertex::translate(win_size.1, point.1);
-        let height = -(Vertex::translate(win_size.0, point.0));
+        let width = Vertex::translate(win_size[1], point.1);
+        let height = -(Vertex::translate(win_size[0], point.0));
         Vertex {
             position: VertexPosition::new([width, height]),
             color: VertexRGB::new(color.0),
