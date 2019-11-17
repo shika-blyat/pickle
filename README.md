@@ -12,9 +12,9 @@ cargo run --example triangle
 ### Roadmap
 
 - [x] Windowing
-- [ ] Draw basics shapes: Triangle, Rectangle, Circle, Polygons (WIP)
-- [ ] Sound
+- [X] Draw basics shapes: Triangle, Rectangle, Circle, Lines
 - [ ] Image
+- [ ] Sound
 - [ ] Texturing
 
 ### Contribute
