@@ -161,15 +161,18 @@ impl Shape for Shapes {
                 color: _,
             } => {
                 let mut points_to_draw = vec![];
-                for i in points.0-radius..points.0+radius {
-                    for j in points.1-radius..points.1+radius {
+                let iradius = *radius as i32;
+                let ipoint0 = points.0 as i32;
+                let ipoint1 = points.1 as i32;
+                for i in ipoint0 - iradius..ipoint0 + iradius {
+                    for j in ipoint1 - iradius..ipoint1 + iradius {
                         let p = (i, j);
-                        if math::point_dist((points.0 as i32, points.1 as i32), (i as i32, j as i32)) <= (*radius as i32) as f32 {
+                        if math::point_dist((ipoint0 , ipoint1), (i as i32, j as i32)) <= (iradius ) as f32 {
                             points_to_draw.push(Vertex::from_point(
-                                p,
+                                (p.0 as u32, p.1 as u32),
                                 self.get_color(),
                                 size,
-                                [init_size[0], init_size[1]],
+                                [init_size[1], init_size[0]],
                             ));
                         }
                     }
