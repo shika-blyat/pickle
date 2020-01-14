@@ -17,11 +17,4 @@ cargo run --example triangle
 - [ ] Sound
 - [ ] Texturing
 
-### Contribute
-Any help appreciated. 
-Open an issue for:
-- Proposal
-- Bugs
-- Discussions about any subjects related to Pickle
 
-PRs are welcome too.
